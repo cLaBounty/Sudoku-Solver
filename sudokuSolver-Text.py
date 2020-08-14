@@ -5,15 +5,15 @@
 
 # initial unsolved board
 board = [
-    [0, 0, 0, 0, 0, 5, 0, 8, 0],
-    [0, 7, 9, 0, 0, 0, 0, 0, 6],
-    [0, 0, 0, 0, 4, 0, 0, 9, 2],
-    [0, 3, 0, 6, 0, 0, 0, 0, 0],
-    [2, 0, 4, 0, 0, 0, 1, 0, 8],
-    [0, 0, 0, 0, 0, 1, 0, 4, 0],
-    [6, 2, 0, 0, 3, 0, 0, 0, 0],
-    [4, 0, 0, 0, 0, 0, 8, 7, 0],
-    [0, 8, 0, 1, 0, 0, 0, 0, 0]
+    [0, 0, 3, 0, 2, 0, 6, 0, 0],
+    [9, 0, 0, 3, 0, 5, 0, 0, 1],
+    [0, 0, 1, 8, 0, 6, 4, 0, 0],
+    [0, 0, 8, 1, 0, 2, 9, 0, 0],
+    [7, 0, 0, 0, 0, 0, 0, 0, 8],
+    [0, 0, 6, 7, 0, 8, 2, 0, 0],
+    [0, 0, 2, 6, 0, 9, 5, 0, 0],
+    [8, 0, 0, 2, 0, 3, 0, 0, 9],
+    [0, 0, 5, 0, 1, 0, 3, 0, 0]
 ]
 
 
@@ -38,10 +38,8 @@ def solve(board):
 
                         # backtrack
                         board[row][col] = 0
-
                 # if no numbers are possible, then backtrack to the previous spot
                 return False
-
     # if no spots are empty, then the board is solved
     return True
 
@@ -57,12 +55,12 @@ def possible(board, row, col, num):
     """
     # check row
     for i in range(9):
-        if board[row][i] == num:
+        if board[row][i] == num and col != i:
             return False
 
     # check column
     for i in range(9):
-        if board[i][col] == num:
+        if board[i][col] == num and row != i:
             return False
 
     # check box
@@ -71,7 +69,7 @@ def possible(board, row, col, num):
 
     for i in range(3):
         for j in range(3):
-            if board[boxFirstRow + i][boxFirstCol + j] == num:
+            if board[boxFirstRow + i][boxFirstCol + j] == num and (row != boxFirstRow + i or col != boxFirstCol + j):
                 return False
 
     return True
@@ -83,17 +81,17 @@ def printBoard(board):
     @param board: A 2d list of ints that represent a sudoku board
     @return None
     """
-    for row in range(9):
+    for row in range(len(board)):
         if row % 3 == 0:
             print("  - - - - - - - - - - - - -")
 
-        for col in range(9):
+        for col in range(len(board[0])):
             if col % 3 == 0:
                 print(" | ", end="")
 
             print(board[row][col], end="")
 
-            if col == 8:
+            if col == len(board[0]) - 1:
                 print(" |", end="\n")
             else:
                 print(" ", end="")
