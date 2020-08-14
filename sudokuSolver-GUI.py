@@ -41,23 +41,6 @@ class Grid:
                        for j in range(self.cols)] for i in range(self.rows)]
         self.selected = None
 
-    def update(self):
-        # update array with the numbers visible on screen
-        for i in range(self.rows):
-            for j in range(self.cols):
-                # ignore incorrect cells on the board
-                if self.cells[i][j].fixed:
-                    self.board[i][j] = self.cells[i][j].value
-                else:
-                    self.board[i][j] = 0
-
-    def reset(self):
-        # clear all the cells
-        for i in range(self.rows):
-            for j in range(self.cols):
-                self.cells[i][j].value = 0
-                self.cells[i][j].fixed = False
-
     def draw(self):
         # draw the lines
         for i in range(self.rows + 1):
@@ -76,6 +59,23 @@ class Grid:
         for i in range(self.rows):
             for j in range(self.cols):
                 self.cells[i][j].draw()
+
+    def update(self):
+        # update array with the numbers visible on screen
+        for i in range(self.rows):
+            for j in range(self.cols):
+                # ignore incorrect cells on the board
+                if self.cells[i][j].fixed:
+                    self.board[i][j] = self.cells[i][j].value
+                else:
+                    self.board[i][j] = 0
+
+    def reset(self):
+        # clear all the cells
+        for i in range(self.rows):
+            for j in range(self.cols):
+                self.cells[i][j].value = 0
+                self.cells[i][j].fixed = False
 
     def clicked(self, mouseX, mouseY):
         # check if the board was clicked
