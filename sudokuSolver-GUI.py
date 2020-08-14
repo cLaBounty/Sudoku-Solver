@@ -2,6 +2,8 @@ import time
 import pygame
 pygame.font.init()
 
+WINDOW = pygame.display.set_mode((600, 690))
+
 # HUD constants
 BORDER = 30
 BTN_WIDTH = 120
@@ -14,8 +16,6 @@ SOLVE_BTN_X = 300 - BTN_WIDTH/2
 TIME_TEXT_X = BORDER - BTN_WIDTH/2 + 440
 RESET_BTN_OFFSET = 18
 SOLVE_BTN_OFFSET = 20
-
-WINDOW = pygame.display.set_mode((600, 690))
 
 
 class Grid:
@@ -32,58 +32,60 @@ class Grid:
         [0, 0, 5, 0, 1, 0, 3, 0, 0]
     ]
 
-    def __init__(self, rows, cols, width, height):
+    def __init__(self, rows, cols, length):
         self.rows = rows
         self.cols = cols
-        self.width = width
-        self.height = height
-        self.cellLength = self.width / self.cols
+        self.length = length
+        self.cellLength = self.length / self.cols
         self.cells = [[Cell(self.board[i][j], i, j, self.cellLength)
                        for j in range(self.cols)] for i in range(self.rows)]
         self.selected = None
 
     def update(self):
-        for row in range(self.rows):
-            for col in range(self.cols):
+        # update array with the numbers visible on screen
+        for i in range(self.rows):
+            for j in range(self.cols):
                 # ignore incorrect cells on the board
-                if self.cells[row][col].fixed:
-                    self.board[row][col] = self.cells[row][col].value
+                if self.cells[i][j].fixed:
+                    self.board[i][j] = self.cells[i][j].value
                 else:
-                    self.board[row][col] = 0
+                    self.board[i][j] = 0
 
     def reset(self):
-        # clear all cells
-        for row in range(self.rows):
-            for col in range(self.cols):
-                self.cells[row][col].value = 0
-                self.cells[row][col].fixed = False
+        # clear all the cells
+        for i in range(self.rows):
+            for j in range(self.cols):
+                self.cells[i][j].value = 0
+                self.cells[i][j].fixed = False
 
     def draw(self):
-        # draw lines
+        # draw the lines
         for i in range(self.rows + 1):
+            # make lines that seperate boxes thicker
             if i % 3 == 0:
                 weight = 4
             else:
                 weight = 1
 
             pygame.draw.line(WINDOW, (0, 0, 0), (i*self.cellLength + BORDER, BORDER),
-                             (i*self.cellLength + BORDER, self.height + BORDER + weight/2), weight)
+                             (i*self.cellLength + BORDER, self.length + BORDER + weight/2), weight)
             pygame.draw.line(WINDOW, (0, 0, 0), (BORDER, i*self.cellLength + BORDER),
-                             (self.width + BORDER + weight/2, i*self.cellLength + BORDER), weight)
+                             (self.length + BORDER + weight/2, i*self.cellLength + BORDER), weight)
 
-        # draw numbers in cells
+        # draw the numbers
         for i in range(self.rows):
             for j in range(self.cols):
                 self.cells[i][j].draw()
 
     def clicked(self, mouseX, mouseY):
-        if mouseX > BORDER and mouseX < self.width + BORDER and mouseY > BORDER and mouseY < self.height + BORDER:
+        # check if the board was clicked
+        if mouseX > BORDER and mouseX < self.length + BORDER and mouseY > BORDER and mouseY < self.length + BORDER:
             return True
         else:
             return False
 
     def select(self, mouseX, mouseY):
-        # select the clicked cell
+        # determine and select the cell that was clicked
         col = int((mouseX - BORDER) // self.cellLength)
         row = int((mouseY - BORDER) // self.cellLength)
 
@@ -91,21 +93,24 @@ class Grid:
         self.cells[row][col].outlined = True
 
     def unselectAll(self):
-        # unselect all cells
-        for row in range(self.rows):
-            for col in range(self.cols):
-                self.cells[row][col].outlined = False
+        # remove outline from all cells
+        for i in range(self.rows):
+            for j in range(self.cols):
+                self.cells[i][j].outlined = False
         self.selected = None
 
     def removeSelected(self):
+        # delete the value in the selected cell
         row, col = self.selected
-        # only can remove incorrect cells
+        # only can remove cells that are incorrect
         if not self.cells[row][col].fixed:
             self.cells[row][col].value = 0
 
     def placeNumber(self, num):
+        # place a number in the selected cell
         row, col = self.selected
 
+        # only can place a new number in an incorrect cell
         if not self.cells[row][col].fixed:
             # update to the current fixed board
             self.update()
@@ -114,6 +119,7 @@ class Grid:
             self.board[row][col] = num
             self.cells[row][col].value = num
 
+            # if the move is possible and the board is still solvable
             if self.possibleMove(row, col, num) and self.solve():
                 self.cells[row][col].fixed = True
             else:
@@ -135,10 +141,8 @@ class Grid:
 
                             # backtrack
                             self.board[row][col] = 0
-
                     # if no numbers are possible, then backtrack to the previous spot
                     return False
-
         # if no spots are empty, then the board is solved
         return True
 
@@ -164,11 +168,12 @@ class Grid:
 
         return True
 
-    def solveGUI(self, playTime):
-        # find empty spot
+    def solveGUI(self, startTime):
+        # find an empty cell
         for row in range(9):
             for col in range(9):
                 if self.board[row][col] == 0:
+                    # outline the empty cell when it is visited
                     self.cells[row][col].outlined = True
 
                     # try all numbers
@@ -177,30 +182,30 @@ class Grid:
                             self.board[row][col] = num
                             self.cells[row][col].value = num
                             self.cells[row][col].fixed = True
-                            updateWindow(self, playTime)
+                            updateWindow(self, startTime)
                             pygame.time.delay(40)
 
-                            # recursively call solve to go to the next spot
-                            if self.solveGUI(playTime):
+                            # recursively call solve to go to the next cell
+                            if self.solveGUI(startTime):
                                 return True
 
                             # backtrack
                             self.board[row][col] = 0
                             self.cells[row][col].value = 'X'
                             self.cells[row][col].fixed = False
-                            updateWindow(self, playTime)
+                            updateWindow(self, startTime)
                             pygame.time.delay(20)
 
-                    # if no numbers are possible, then backtrack to the previous spot
+                    # if no numbers are possible, then backtrack to the previous cell
                     self.cells[row][col].value = 'X'
-                    updateWindow(self, playTime)
+                    updateWindow(self, startTime)
                     pygame.time.delay(20)
                     return False
 
-        # if no spots are empty, then the board is solved
+        # if no cells are empty, then the board is solved
         self.unselectAll()
         pygame.time.delay(250)
-        updateWindow(self, playTime)
+        updateWindow(self, startTime)
         return True
 
 
@@ -213,6 +218,8 @@ class Cell:
         self.outlined = False
         self.borderColor = (0, 0, 0)
         self.fontColor = (0, 0, 0)
+
+        # determine if the cell is already part of the solution
         if value == 0:
             self.fixed = False
         else:
@@ -231,7 +238,7 @@ class Cell:
         x = self.col * self.length
         y = self.row * self.length
 
-        # only draw filled cells
+        # only draw non-empty cells
         if self.value != 0:
             text = fnt.render(str(self.value), 1, self.fontColor)
             offsetX = 0.5 * (self.length - text.get_width()) + BORDER
@@ -244,6 +251,7 @@ class Cell:
 
 
 def checkResetClick(mouseX, mouseY):
+    # check if the reset button was clicked
     if mouseX > RESET_BTN_X and mouseX < RESET_BTN_X + BTN_WIDTH and mouseY > BTN_Y and mouseY < BTN_Y + BTN_HEIGHT:
         return True
     else:
@@ -251,6 +259,7 @@ def checkResetClick(mouseX, mouseY):
 
 
 def checkSolveClick(mouseX, mouseY):
+    # check if the solve button was clicked
     if mouseX > SOLVE_BTN_X and mouseX < SOLVE_BTN_X + BTN_WIDTH and mouseY > BTN_Y and mouseY < BTN_Y + BTN_HEIGHT:
         return True
     else:
@@ -278,6 +287,7 @@ def drawHUD(playTime):
 
 
 def formatTime(time):
+    # format the time to be displayed in the HUD
     seconds = time % 60
     minutes = (time // 60) % 60
     hours = time // 3600
@@ -285,19 +295,19 @@ def formatTime(time):
     minPart = ""
     hourPart = ""
 
-    # formatting seconds
+    # format seconds
     if seconds < 10:
         secPart = ":0" + str(seconds)
     else:
         secPart = ":" + str(seconds)
 
-    # formatting minutes
+    # format minutes
     if hours != 0 and minutes < 10:
         minPart = "0" + str(minutes)
     else:
         minPart = str(minutes)
 
-    # formatting hours
+    # format hours
     if hours == 0:
         hourPart = ""
     else:
@@ -306,7 +316,8 @@ def formatTime(time):
     return str(hourPart + minPart + secPart)
 
 
-def updateWindow(board, playTime):
+def updateWindow(board, startTime):
+    playTime = round(time.time() - startTime)
     WINDOW.fill((255, 255, 255))
     board.draw()
     drawHUD(playTime)
@@ -314,16 +325,14 @@ def updateWindow(board, playTime):
 
 
 def main():
+    # main function with the game loop
     pygame.display.set_caption("Sudoku Solver")
-    board = Grid(9, 9, 540, 540)
+    board = Grid(9, 9, 540)
     startTime = time.time()
     key = None
 
     running = True
     while running:
-
-        playTime = round(time.time() - startTime)
-
         # look for any event
         for event in pygame.event.get():
             # close button
@@ -331,22 +340,24 @@ def main():
                 running = False
             # mouse pressed
             elif event.type == pygame.MOUSEBUTTONDOWN:
+                # get position of the mouse
                 pos = pygame.mouse.get_pos()
                 mouseX = pos[0]
                 mouseY = pos[1]
+
                 board.unselectAll()
-                # board click
+                # board
                 if board.clicked(mouseX, mouseY):
                     board.select(mouseX, mouseY)
-                # reset button click
+                # reset button
                 elif checkResetClick(mouseX, mouseY):
                     startTime = time.time()
                     board.reset()
-                # solve button click
+                # solve button
                 elif checkSolveClick(mouseX, mouseY):
                     board.update()
-                    board.solveGUI(playTime)
-            # mouse pressed
+                    board.solveGUI(startTime)
+            # key pressed
             elif event.type == pygame.KEYDOWN and board.selected:
                 if event.key == pygame.K_1 or event.key == pygame.K_KP1:
                     key = 1
@@ -375,7 +386,7 @@ def main():
                 if key != None:
                     board.placeNumber(key)
 
-        updateWindow(board, playTime)
+        updateWindow(board, startTime)
 
 
 main()
