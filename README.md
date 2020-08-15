@@ -1,4 +1,4 @@
-# Rubik's Cube Solver
+# Sudoku Solver
 
 ### [Demo](https://www.youtube.com/watch?v=3UygRwpKiEU) | [Download](https://clabounty.itch.io/sudoku-solver)
 
