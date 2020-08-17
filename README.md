@@ -1,6 +1,6 @@
 # Sudoku Solver
 
-### [Demo](https://www.youtube.com/watch?v=3UygRwpKiEU) | [Download](https://clabounty.itch.io/sudoku-solver)
+### [Demo](https://www.youtube.com/watch?v=mpyLjhE6kZ0) | [Download](https://clabounty.itch.io/sudoku-solver)
 
 ## Summary
 A Sudoku solver that uses backtracking to find a solution to any solvable game. Added functionality to play the game as well as manually input your own board. Built in Python using the Pygame library.
